@@ -85,7 +85,7 @@ body {
     position: relative;
 }
 
-h3{
+h3, #pendingCounter, #completedCounter{
     text-align: center;
 }
 

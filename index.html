@@ -14,12 +14,14 @@
             <div id="header"> To Do List </div>
 
             <div class="task-list task-container" id="pending">
+                <div id="pendingCounter"></div>
                 <h3>Pending</h3>
                 <ul></ul>
 
             </div>
 
             <div class="task-list task-container" id="completed">
+                <div id="completedCounter"></div>
                 <h3>Completed</h3>
                 <ul></ul>
             </div>
@@ -168,9 +170,14 @@
                         var element = null;
 
                         if(listStatus == "pendingList"){
-                            element = "#pending"
+                            element = "#pending";
+                            // update counter
+                            $('#pendingCounter').html(list.length + ' tasks left');
+
                         }else{
-                            element = "#completed"
+                            element = "#completed";
+                            $('#completedCounter').html(list.length + ' tasks left');
+
                         }
 
                         var parent = $(element).find("ul"); 
@@ -179,6 +186,8 @@
                         }                
 
                         parent.empty();   
+
+
 
                         for(var i = 0; i < list.length; i++){
 
