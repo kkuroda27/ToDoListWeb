@@ -1,0 +1,440 @@
+
+<html>
+    <head>
+        <title>Kai's To-Do List!</title>
+
+        <link rel="stylesheet" href="lib/Bootstrap/bootstrap.min.css" />
+        <link rel="stylesheet" href="lib/jQuery/jquery.ui.min.css" />
+        <link rel="stylesheet" href="assets/todo.css" />
+    </head>
+
+    <body>
+        <div id="container">
+
+            <div id="header"> To Do List </div>
+
+            <div class="task-list task-container" id="pending">
+                <h3>Pending</h3>
+                <ul></ul>
+
+            </div>
+
+            <div class="task-list task-container" id="completed">
+                <h3>Completed</h3>
+                <ul></ul>
+            </div>
+
+            <div class="task-list" id="addForm">
+                <h3>Add a task</h3>
+                <form id="todo-form">
+                    <textarea placeholder="Description"></textarea>
+                    <input type="text" class="datepicker" placeholder="Due Date (dd/mm/yyyy)" />
+                    <input type="button" class="btn btn-primary" value="Add Task" onclick="addTask();" />
+                </form>
+
+                <input type="button" class="btn btn-primary" value="Clear Data" onclick="todo.clear();" />
+
+                <div id="delete-div">
+                    Drag Here to Delete
+                </div>
+            </div>
+
+            <div class="task-list" id="viewForm" style="display: none">
+                <h3>View/Edit a task</h3>
+                <form id="taskInfo">
+                    <textarea placeholder="Description"></textarea>
+                    <input type="text" class="datepicker" placeholder="Due Date (dd/mm/yyyy)" />
+                    <input type="button" class="btn btn-primary" value="Update Task" onclick="updateTask();" />
+                </form>
+            </div>
+
+            <div id="dialog-confirm" title="Delete Task?"style="display:none;">
+              <p><span></span>Are you sure you want to delete this Task?</p>
+            </div>
+
+            <div style="clear:both;"></div>
+              <script type="text/javascript" src="lib/jQuery/jquery.min.js"></script>
+            <script type="text/javascript" src="lib/Bootstrap/bootstrap.min.js"></script>
+            <script type="text/javascript" src="lib/jQuery/jquery.ui.min.js"></script>
+
+            <script type="text/javascript">
+
+                /* goals
+                    three windows: adding a task, showing the task, completed tasks
+                    check off a task to move task to completed, uncheck to move back
+                    
+                    styled, refreshtodolistmethod, added checkbox
+                    ;;;
+
+                    styled, adding event handler to checkbox to call moveTask function,
+                    defined moveTask func, successfully removes and adds task to another list. 
+                    now work on HTML local storage.
+
+                    ;;;;
+
+                    now working on local storage
+
+                    ;;;;
+                    local storage implemented, checking and unchecking smoothly moves tasks back and forth. 
+                    next is to add tasks to pending from input fields.
+
+                        
+                    ;;; created multi functional features! changed up organiationl structure of list entity/
+                    positioned delete button to very right
+
+
+                    ;;; UP NEXT! add counter and add viewing to replace add task
+                    GAMEPLAN
+                    - Research different functionality from different to do lists
+                    - marking priorities for certain tasks
+                    - Creating a new list
+                    - vew dates on task
+                    - click task and have some kind of view to see what task 
+
+                */
+
+
+                    var exampleToDos = [
+                        {
+                            id: "1",
+                            description: "blah blah blah 1",
+                            listID: 1
+                        },
+                        {
+                            id: "2",
+                            description: "blah blah blah 2",
+                            listID: 1
+
+                        },
+                        {
+                            id: "3",
+                            description: "blah blah blah 3",
+                            listID: 1
+
+                        }
+                    ]
+
+                    //localStorage["completedList"] = JSON.stringify(exampleToDos);
+
+
+
+                    //var deletedToDos = []
+                    
+                    $(document).mouseup(function (e)
+                    {
+                        // if what I click has class todo-task or has a parent with class .todo-task,....
+                        if(!($(e.target).closest('.todo-task').length || $(e.target).closest('#viewForm').length || $(e.target).closest('a.ui-state-default').length)){
+                            var addDiv = $("#addForm");  
+                            var viewDiv = $("#viewForm");
+                            addDiv.show();
+                            viewDiv.hide();
+                        }else{}
+
+                        /*
+                        if (!container.is(e.target) // if the target of the click isn't the container...
+                            && container.has(e.target).length === 0) // ... nor a descendant of the container
+                        {
+                            container.hide();
+                        }
+                        */
+                    });
+                   
+                    // this will take a listStatus, "Pending or Completed", and return the 
+                    // array of tasks associated with the listID
+                    var returnTasksByListID = function(listID, listStatus){
+                        var list = [];
+                        var resultList = [];
+                        if(localStorage[listStatus] == null){
+                            localStorage[listStatus] == JSON.stringify(list);
+                        }else{
+                            var list = JSON.parse(localStorage[listStatus]);
+                        }
+
+                        for(var i = 0; i < list.length; i++){
+                            if(list[i].listID == listID){
+                                resultList.push(list[i]);
+                            }else{}
+                        }
+
+                        return resultList;
+
+
+                    };
+
+                    var refreshList = function(listID, listStatus){
+
+                        var list = returnTasksByListID(listID, listStatus);
+
+                        var element = null;
+
+                        if(listStatus == "pendingList"){
+                            element = "#pending"
+                        }else{
+                            element = "#completed"
+                        }
+
+                        var parent = $(element).find("ul"); 
+                        if (!parent) {
+                            return;
+                        }                
+
+                        parent.empty();   
+
+                        for(var i = 0; i < list.length; i++){
+
+                            var data = list[i];
+
+                            var wrapper = $("<li />", {
+                                "class" : "todo-task",
+                                "id" : data.id                    
+                            }).appendTo(parent);
+
+
+                            var checkbox = $("<input />", {
+                                "class" : "task-checkbox",
+                                "type" : "checkbox",
+                                "checked" : false
+
+                            }).appendTo(wrapper);
+                            
+                            if(element == "#completed"){
+                                checkbox[0].checked = true;
+                            }else{}
+
+                            // if(task is completed, set attribute of checkbox "checked" : true)
+        
+                            var descriptionSpan = $("<span />", {
+                                "class" : "task-description",
+                                "text": data.description
+                            }).appendTo(wrapper);
+
+                            var btnDelete = $("<button />", {
+                                "id" : "2",
+                                "text": "delete"
+                            }).appendTo(wrapper);
+                            
+
+
+                            checkbox.click(function(e) {
+                                var id = parseInt(e.target.parentElement.id);
+                                moveTask(id, listStatus, listID);
+
+                            });
+
+
+
+                            btnDelete.click(function(e) {
+                                var id = parseInt(e.target.parentElement.id);
+
+                                var dialog = $( "#dialog-confirm" ).dialog({
+                                  autoOpen: false,
+                                  height: 300,
+                                  width: 350,
+                                  modal: true,
+                                  buttons: {
+                                    "Yes": function(){
+                                        deleteTask(id, listID, listStatus);
+                                        refreshList(listID, listStatus);
+                                        dialog.dialog( "close" );
+
+                                    },
+                                    Cancel: function() {
+                                      dialog.dialog( "close" );
+                                    }
+                                  }
+                                });
+
+                                dialog.dialog("open");
+                                
+                            });
+
+                            wrapper.click(function(e) {
+
+                                var addDiv = $("#addForm");  
+                                var viewDiv = $("#viewForm");
+                                addDiv.hide();
+                                viewDiv.show();
+                                //addDiv.toggle();
+                                //viewDiv.toggle();
+
+                                var taskID = e.delegateTarget.id;
+                                var clickedTask = getTaskbyID(taskID);
+                                var viewInputs =  $("#taskInfo" + " :input");
+                                var taskInfoElement = $("#taskInfo");
+
+                                viewInputs[0].value = clickedTask.description;
+                                viewInputs[1].value = clickedTask.date;
+
+                                // store taskID in element so we can access it later when we update
+                                taskInfoElement.data("data-taskID", taskID);
+
+                            });
+
+                        }
+
+                    };
+
+                    var getTaskbyID = function(taskID){
+                        var list1 = JSON.parse(localStorage["pendingList"]);
+                        var list2 = JSON.parse(localStorage["completedList"]);
+                        var resultTask = null;
+
+                        for(var i = 0; i < list1.length; i++){
+                            if(list1[i].id == taskID){
+                                resultTask = list1[i];
+                            }else{}
+                        }
+
+                        for(var i = 0; i < list2.length; i++){
+                            if(list2[i].id == taskID){
+                                resultTask = list2[i];
+                            }else{}
+                        } 
+
+                        return resultTask;                      
+                    }
+                    
+                    var deleteTask = function(taskID, listID, listStatus){
+
+                        var list = returnTasksByListID(listID, listStatus);
+                        var status = "";
+
+                        if(listStatus == "pendingList"){
+                            status = "pendingList";
+                        }else{
+                            status = "completedList";
+                        }
+
+                        for(var i = 0; i < list.length; i++){
+                            if(list[i].id == taskID){
+
+                                var temp = list[i];
+                                list.splice(i, 1);
+
+                                localStorage[status] = JSON.stringify(list);
+
+                                return;
+                            }else{}
+                        }                  
+
+                    }   
+
+                    var moveTask = function(taskID, listStatus, listID){
+                        var list1 = [];
+                        var list2 = [];
+                        var status1, status2 = "";
+
+                        if(listStatus == "pendingList"){
+                            status1 = "pendingList";
+                            status2 = "completedList";
+                        }else{
+                            status1 = "completedList";
+                            status2 = "pendingList";             
+                        }
+
+                        list1 = JSON.parse(localStorage[status1]);
+                        list2 = JSON.parse(localStorage[status2]);   
+
+                        for(var i = 0; i < list1.length; i++){
+                            if(list1[i].id == taskID){
+
+                                var temp = list1[i];
+                                list1.splice(i, 1);
+                                list2.push(temp);
+
+                                localStorage[status1] = JSON.stringify(list1);
+                                localStorage[status2] = JSON.stringify(list2);
+
+                                refreshList(listID, "pendingList");
+                                refreshList(listID, "completedList");
+
+                                return;
+                            }else{}
+                        }
+
+
+                    }
+                    
+
+
+                    // Add Task
+                    var addTask = function(){
+
+                        var inputs = $("#todo-form" + " :input");                     
+                        var errorMessage = "Enter a task!";                            
+                        var id, description;
+
+                        // why do we need this
+                        if (inputs.length !== 3) {
+                            return;
+                        }
+
+                        description = inputs[0].value;
+                        date = inputs[1].value;
+
+                        if (!description) {
+                            generateDialog(errorMessage);
+                            return;
+                        }
+
+                        id = new Date().getTime();
+
+                        tempData = {
+                            id : id,
+                            description: description, 
+                            date: date,
+                            listID: 1
+                        };
+
+                        // Saving element in local storage
+                         
+                        var data = JSON.parse(localStorage["pendingList"]);
+                        data.push(tempData);
+                        localStorage.setItem("pendingList", JSON.stringify(data));
+
+                        refreshList(tempData.listID, "pendingList");
+                        // Reset Form
+                        inputs[0].value = "";
+                        inputs[1].value = "";
+
+                    };
+
+                    var updateTask = function(){
+                        var inputs = $("#taskInfo" + " :input"); 
+                        var taskID = $("#taskInfo").data("data-taskID");
+                        var updatedTask = getTaskbyID(taskID);
+                        // update updatedTask here.
+
+                        updatedTask.description = inputs[0].value;
+                        updatedTask.date = inputs[1].value;
+
+                        var list = JSON.parse(localStorage["pendingList"]);
+
+                        for(var i = 0; i < list.length; i++){
+                            if(list[i].id == taskID){
+                                list[i] = updatedTask;
+                            }else{}
+                        }
+                        
+                        var list = localStorage.setItem("pendingList", JSON.stringify(list));
+                        refreshList(updatedTask.listID, "pendingList");
+
+
+                    };
+
+                    refreshList(1, "pendingList");
+                    refreshList(1, "completedList");
+
+                    $(".datepicker").each(function(){
+                        $(this).datepicker();
+                        $(this).datepicker("option", "dateFormat", "dd/mm/yy");
+
+                    });
+
+
+
+            </script>
+
+        </div>
+    </body>
+</html>
